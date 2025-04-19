@@ -5,7 +5,6 @@ use wordle_helper_lib::load_words;
 
 fn main() {
     let words = load_words();
-    println!("Loaded {} words", words.len());
 
     wordle_helper_lib::run();
 }

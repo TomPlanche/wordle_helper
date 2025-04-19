@@ -91,6 +91,18 @@ impl Word {
         &self.letters[pos]
     }
 
+    /// # `letter_at_mut`
+    /// Returns a mutable reference to the letter at the given position.
+    ///
+    /// ## Arguments
+    /// * `pos` - The position of the letter to retrieve.
+    ///
+    /// ## Returns
+    /// * `&mut Letter` - A mutable reference to the letter at the given position.
+    pub fn letter_at_mut(&mut self, pos: usize) -> &mut Letter {
+        &mut self.letters[pos]
+    }
+
     pub fn to_string(&self) -> String {
         self.letters.iter().map(|l| l.character).collect()
     }
@@ -112,4 +124,47 @@ pub fn load_words() -> Vec<String> {
     let reader = std::io::BufReader::new(file);
 
     serde_json::from_reader(reader).expect("Failed to parse words file")
+}
+
+/// # `create_pattern`
+/// Helper function to create a pattern with specific states
+///
+/// ## Arguments
+/// * `word` - The word to create the pattern for.
+/// * `states` - The states of each letter in the word.
+///
+/// ## Returns
+/// * `Word` - The created pattern.
+pub fn create_pattern(word: &str, states: Vec<(usize, LetterState)>) -> Word {
+    let mut pattern = Word::new(word).unwrap();
+    for (pos, state) in states {
+        pattern.letter_at_mut(pos).set_state(state);
+    }
+
+    pattern
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_word_creation() {
+        assert!(Word::new("hello").is_ok());
+        assert!(Word::new("hi").is_err());
+        assert!(Word::new("toolong").is_err());
+        assert!(Word::new("12345").is_err());
+    }
+
+    #[test]
+    fn test_letter_states() {
+        let mut word = Word::new("hello").unwrap();
+        word.letter_at_mut(0).set_state(LetterState::Correct);
+        word.letter_at_mut(1).set_state(LetterState::Misplaced);
+        word.letter_at_mut(2).set_state(LetterState::Absent);
+
+        assert_eq!(word.letter_at(0).state, LetterState::Correct);
+        assert_eq!(word.letter_at(1).state, LetterState::Misplaced);
+        assert_eq!(word.letter_at(2).state, LetterState::Absent);
+    }
 }
