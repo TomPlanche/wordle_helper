@@ -1,7 +1,7 @@
 <script lang="ts">
   import "../main.scss";
   import WordGuess from "../lib/components/WordGuess.svelte";
-  import type {TWord} from "$lib/types";
+  import {FinalLetterSchema, type TWord} from "$lib/types";
   import {invoke} from "@tauri-apps/api/core";
 
   // States
@@ -58,10 +58,14 @@
       return;
     }
 
-    // Handle the submission logic here
-    console.log('Submitting guesses:', guesses);
+    const verif = FinalLetterSchema.safeParse(guesses);
 
-    invoke('filter_word_list', {patterns: guesses})
+    if (verif.error) {
+      console.error('Invalid guesses:', verif.error);
+      alert('Invalid guesses. Please check your input.');
+    }
+
+    invoke('filter_word_list', {patterns: verif.data})
       .then((possibleWords) => {
         possibleMatches = possibleWords as string[];
       });

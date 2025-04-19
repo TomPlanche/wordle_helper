@@ -1,15 +1,15 @@
 import {z} from "zod";
 
 const LetterStateSchema = z.enum(["unknown", "correct", "misplaced", "absent"]);
+const CharacterSchema = z
+  .string()
+  .min(1, {message: "Letter must be at least 1 character"})
+  .max(1, {message: "Letter must be at most 1 character"})
+  .transform((val) => val.toLowerCase())
+  .regex(/^[a-z]$/, {message: "Letter must be a single letter"});
 
 const LetterSchema = z.object({
-  character: z
-    .string()
-    .min(1, {message: "Letter must be at least 1 character"})
-    .max(1, {message: "Letter must be at most 1 character"})
-    .transform((val) => val.toLowerCase())
-    .regex(/^[a-z]$/, {message: "Letter must be a single letter"}),
-
+  character: CharacterSchema,
   state: LetterStateSchema,
 });
 
@@ -19,6 +19,10 @@ const WordSchema = z
     message: "Word must be 5 letters",
   });
 
+const FinalLetterStateSchema = z.enum(["correct", "misplaced", "absent"]);
+export const FinalLetterSchema = z.object({
+  character: CharacterSchema,
+  state: FinalLetterStateSchema,
+});
 
-export type TLetter = z.infer<typeof LetterSchema>;
 export type TWord = z.infer<typeof WordSchema>;
