@@ -1,156 +1,229 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+  import "../main.scss";
+  import WordGuess from "../lib/components/WordGuess.svelte";
+  import type {TWord} from "$lib/types";
+  import {invoke} from "@tauri-apps/api/core";
 
-  let name = $state("");
-  let greetMsg = $state("");
+  // States
+  let guesses = $state<TWord[]>(
+    [[
+      {character: '', state: 'unknown'},
+      {character: '', state: 'unknown'},
+      {character: '', state: 'unknown'},
+      {character: '', state: 'unknown'},
+      {character: '', state: 'unknown'}
+    ]]
+  );
+  let possibleMatches = $state<string[]>([]);
 
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
+  let allFilled: boolean = $derived(guesses.every(guess => guess.every(letter => letter.char !== '')))
+  let allAreNotUnknown: boolean = $derived(guesses.every(guess => guess.every(letter => letter.state !== 'unknown')))
+
+  const addGuess = () => {
+    if (!allFilled) {
+      alert('Please fill all letter boxes before adding a new guess.');
+      return;
+    }
+
+    if (!allAreNotUnknown) {
+      alert('Please set all letter states before adding a new guess.');
+      return;
+    }
+
+    guesses = [
+      ...guesses,
+      [
+        {character: '', state: 'unknown'},
+        {character: '', state: 'unknown'},
+        {character: '', state: 'unknown'},
+        {character: '', state: 'unknown'},
+        {character: '', state: 'unknown'}
+      ]
+    ];
+  }
+
+  // Delete a guess by index
+  const deleteGuess = (index: number) => {
+    guesses = guesses.filter((_, i) => i !== index);
+  }
+
+  const handleSubmit = () => {
+    if (!allFilled) {
+      alert('Please fill all letter boxes before submitting.');
+      return;
+    }
+
+    if (!allAreNotUnknown) {
+      alert('Please set all letter states before submitting.');
+      return;
+    }
+
+    // Handle the submission logic here
+    console.log('Submitting guesses:', guesses);
+
+    invoke('filter_word_list', {patterns: guesses})
+      .then((possibleWords) => {
+        possibleMatches = possibleWords as string[];
+      });
   }
 </script>
 
-<main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
+<main>
+  <h1>Welcome to Tom's Wordle helper!</h1>
 
-  <div class="row">
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://kit.svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
+  <div class="guesses">
+    {#each guesses as _, index}
+      <div class="guess-container">
+        <WordGuess key={index} bind:word={guesses[index]}/>
+
+        {#if index !== 0 && guesses.length < 1}
+          <button
+              class="delete-guess-btn"
+              onclick={() => deleteGuess(index)}
+              aria-label="Delete guess"
+          >
+            <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M17 5V4C17 2.89543 16.1046 2 15 2H9C7.89543 2 7 2.89543 7 4V5H4C3.44772 5 3 5.44772 3 6C3 6.55228 3.44772 7 4 7H5V18C5 19.6569 6.34315 21 8 21H16C17.6569 21 19 19.6569 19 18V7H20C20.5523 7 21 6.55228 21 6C21 5.44772 20.5523 5 20 5H17ZM15 4H9V5H15V4ZM17 7H7V18C7 18.5523 7.44772 19 8 19H16C16.5523 19 17 18.5523 17 18V7Z"
+                  fill="currentColor"
+              />
+              <path d="M9 9H11V17H9V9Z" fill="currentColor"/>
+              <path d="M13 9H15V17H13V9Z" fill="currentColor"/>
+            </svg>
+          </button>
+        {/if}
+      </div>
+    {/each}
+
+    {#if guesses.length < 4}
+      <button
+          class="add-guess-btn"
+          onclick={addGuess}
+      >Add Guess
+      </button>
+    {/if}
+
+    <button
+        class="search-btn"
+        onclick={handleSubmit}
+    >
+      Search
+    </button>
   </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
 
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
+  {#if possibleMatches.length > 0}
+    <div class="results">
+      <h2>Possible matches:</h2>
+      <ul>
+        {#each possibleMatches as word}
+          <li>{word}</li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
 </main>
 
-<style>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.svelte-kit:hover {
-  filter: drop-shadow(0 0 2em #ff3e00);
-}
-
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
-}
-
-#greet-input {
-  margin-right: 5px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
+<style lang="scss">
+  .guesses {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 2rem 0;
+    align-items: center;
   }
 
-  a:hover {
-    color: #24c8db;
+  .guess-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
   }
 
-  input,
+
   button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
+    font-family: "Monorama", monospace;
+    font-size: 1rem;
+    font-weight: 100;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    border: none;
 
+    &.delete-guess-btn {
+      padding: .5rem;
+      background-color: #dc322f;
+      color: white;
+      border-radius: 8px;
+      font-size: 1.5rem;
+
+      &:hover {
+        background-color: #cb3837;
+
+        svg {
+          scale: 1.2;
+        }
+      }
+
+      svg {
+        width: 1.5rem;
+        height: 1.5rem;
+
+        transition: background-color 0.2s, scale 0.2s;
+      }
+    }
+
+    &.add-guess-btn {
+      background-color: #268bd2;
+      color: white;
+
+      &:hover {
+        background-color: #1e6ea7;
+      }
+    }
+
+    &.search-btn {
+      background-color: #2aa198;
+      color: white;
+      border: none;
+
+      &:hover {
+        background-color: #219186;
+      }
+    }
+  }
+
+  .results {
+    margin: 2rem 0;
+    padding: 1rem;
+    background-color: #073642;
+    border-radius: 8px;
+    color: #839496;
+
+    h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+
+      li {
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        color: #93a1a1;
+      }
+    }
+  }
 </style>
