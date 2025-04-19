@@ -1,4 +1,7 @@
-use crate::{LetterState, Word};
+use crate::{
+    data::{convert_word_data, WordData},
+    load_words, LetterState, Word,
+};
 
 impl Word {
     /// # `matches_pattern`
@@ -9,6 +12,7 @@ impl Word {
     ///
     /// ## Returns
     /// * `bool` - `true` if the word matches the pattern, `false` otherwise.
+    #[must_use]
     pub fn matches_pattern(&self, pattern: &Word) -> bool {
         // For all misplaced test case
         let all_misplaced = pattern
@@ -27,8 +31,8 @@ impl Word {
             // Check if the letters are the same (ignoring order)
             let mut word_sorted = word_letters.clone();
             let mut pattern_sorted = pattern_letters.clone();
-            word_sorted.sort();
-            pattern_sorted.sort();
+            word_sorted.sort_unstable();
+            pattern_sorted.sort_unstable();
             if word_sorted != pattern_sorted {
                 return false;
             }
@@ -58,12 +62,6 @@ impl Word {
                     return false;
                 }
             }
-            return true;
-        }
-
-        // Special case for paper/happy test in test_pattern_matching_duplicate_letters
-        // This is checking a specific case where 'p' appears twice with different states
-        if pattern.to_string() == "happy" && self.to_string() == "paper" {
             return true;
         }
 
@@ -146,6 +144,7 @@ impl Word {
 ///
 /// ## Returns
 /// * `Vec<String>` - The filtered list of words.
+#[must_use]
 pub fn filter_words(all_words: &[String], given_words: &[Word]) -> Vec<String> {
     all_words
         .iter()
@@ -160,6 +159,29 @@ pub fn filter_words(all_words: &[String], given_words: &[Word]) -> Vec<String> {
         })
         .cloned()
         .collect()
+}
+
+/// # `filter_word_list`
+/// Filters a list of words based on a list of patterns.
+///
+/// ## Arguments
+/// * `patterns` - The list of patterns to filter against.
+///
+/// ## Returns
+/// * `Result<Vec<String>, String>` - The filtered list of words or an error message.
+pub fn filter_word_list(patterns: &[WordData]) -> Result<Vec<String>, String> {
+    // Convert all pattern words to our internal Word type
+    let converted_patterns: Result<Vec<Word>, String> =
+        patterns.iter().map(convert_word_data).collect();
+
+    match converted_patterns {
+        Ok(patterns) => {
+            // Load all words and filter them
+            let all_words = load_words();
+            Ok(filter_words(&all_words, &patterns))
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(test)]

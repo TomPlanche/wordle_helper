@@ -34,7 +34,7 @@ pub fn convert_word_data(word_data: &WordData) -> Result<Word, String> {
     // Create a Word with the right characters
     let word_str: String = word_data.iter().map(|l| l.character).collect();
 
-    let mut word = Word::new(&word_str).map_err(|e| e.to_string())?;
+    let mut word = Word::new(&word_str).map_err(std::string::ToString::to_string)?;
 
     // Set the states for each letter
     for (i, letter_data) in word_data.iter().enumerate() {

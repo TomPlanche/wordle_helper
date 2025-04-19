@@ -65,7 +65,7 @@
       alert('Invalid guesses. Please check your input.');
     }
 
-    invoke('filter_word_list', {patterns: verif.data})
+    invoke('filter_word_list_command', {patterns: verif.data})
       .then((possibleWords) => {
         possibleMatches = possibleWords as string[];
       });

@@ -1,30 +1,15 @@
-use crate::{
-    data::{convert_word_data, WordData},
-    game_logic::filter_words,
-    load_words, Word,
-};
+use crate::{data::WordData, game_logic::filter_word_list};
 
 #[tauri::command]
-pub fn filter_word_list(patterns: Vec<WordData>) -> Result<Vec<String>, String> {
-    // Convert all pattern words to our internal Word type
-    let converted_patterns: Result<Vec<Word>, String> =
-        patterns.iter().map(convert_word_data).collect();
-
-    match converted_patterns {
-        Ok(patterns) => {
-            // Load all words and filter them
-            let all_words = load_words();
-            Ok(filter_words(&all_words, &patterns))
-        }
-        Err(e) => Err(e),
-    }
+pub fn filter_word_list_command(patterns: Vec<WordData>) -> Result<Vec<String>, String> {
+    filter_word_list(&patterns)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![filter_word_list])
+        .invoke_handler(tauri::generate_handler![filter_word_list_command])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -56,7 +41,7 @@ mod tests {
         ]);
 
         let patterns = parse_word_data(json_patterns);
-        let result = filter_word_list(patterns).unwrap();
+        let result = filter_word_list(&patterns).unwrap();
 
         // Results should contain words starting with 'p'
         assert!(result.iter().all(|w| w.starts_with('p')));
@@ -89,7 +74,7 @@ mod tests {
         ]);
 
         let patterns = parse_word_data(json_patterns);
-        let result = filter_word_list(patterns).unwrap();
+        let result = filter_word_list(&patterns).unwrap();
 
         // Results should have 'a' at position 2 and 'n' at position 3
         assert!(result.iter().all(|w| {
@@ -114,7 +99,7 @@ mod tests {
         ]);
 
         let patterns = parse_word_data(json_patterns);
-        let result = filter_word_list(patterns).unwrap();
+        let result = filter_word_list(&patterns).unwrap();
 
         // Results should contain 'r' but not at first position
         assert!(result.iter().all(|w| {
@@ -139,7 +124,7 @@ mod tests {
         ]);
 
         let patterns = parse_word_data(json_patterns);
-        let result = filter_word_list(patterns).unwrap();
+        let result = filter_word_list(&patterns).unwrap();
 
         // Results should not contain any of the letters q, w, e, r, t
         assert!(result.iter().all(|w| {
@@ -164,7 +149,7 @@ mod tests {
         ]);
 
         let patterns = parse_word_data(json_patterns);
-        let result = filter_word_list(patterns);
+        let result = filter_word_list(&patterns);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("must have exactly 5 letters"));
     }
@@ -185,7 +170,7 @@ mod tests {
         ]);
 
         let patterns = parse_word_data(json_patterns);
-        let result = filter_word_list(patterns).unwrap();
+        let result = filter_word_list(&patterns).unwrap();
 
         // Results should have 'l' at position 1, 'a' at position 2, and no 'k' at the end
         assert!(result.iter().all(|w| {
@@ -210,7 +195,7 @@ mod tests {
             ]"#;
 
         let patterns: Vec<WordData> = serde_json::from_str(json_str).unwrap();
-        let result = filter_word_list(patterns).unwrap();
+        let result = filter_word_list(&patterns).unwrap();
 
         // Results should start with "st"
         assert!(result.iter().all(|w| w.starts_with("st")));

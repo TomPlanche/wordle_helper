@@ -2,8 +2,6 @@ pub mod data;
 pub mod game_logic;
 pub mod tauri;
 
-use std::fmt;
-
 pub use tauri::run;
 
 const WORDS_FILE: &str = "assets/all_words.json";
@@ -88,6 +86,7 @@ impl Word {
     ///
     /// ## Returns
     /// * `&Letter` - A reference to the letter at the given position.
+    #[must_use]
     pub fn letter_at(&self, pos: usize) -> &Letter {
         &self.letters[pos]
     }
@@ -103,16 +102,6 @@ impl Word {
     pub fn letter_at_mut(&mut self, pos: usize) -> &mut Letter {
         &mut self.letters[pos]
     }
-
-    pub fn to_string(&self) -> String {
-        self.letters.iter().map(|l| l.character).collect()
-    }
-}
-
-impl fmt::Display for Word {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
 }
 
 /// # `load_words`
@@ -120,6 +109,7 @@ impl fmt::Display for Word {
 ///
 /// ## Returns
 /// * `Vec<String>` - A vector of words loaded from the JSON file.
+#[must_use]
 pub fn load_words() -> Vec<String> {
     let file = std::fs::File::open(WORDS_FILE).expect("Failed to open words file");
     let reader = std::io::BufReader::new(file);
@@ -136,6 +126,7 @@ pub fn load_words() -> Vec<String> {
 ///
 /// ## Returns
 /// * `Word` - The created pattern.
+#[must_use]
 pub fn create_pattern(word: &str, states: Vec<(usize, LetterState)>) -> Word {
     let mut pattern = Word::new(word).unwrap();
     for (pos, state) in states {
