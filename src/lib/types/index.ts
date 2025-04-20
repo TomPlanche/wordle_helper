@@ -5,8 +5,10 @@ const CharacterSchema = z
   .string()
   .min(1, {message: "Letter must be at least 1 character"})
   .max(1, {message: "Letter must be at most 1 character"})
-  .transform((val) => val.toLowerCase())
-  .regex(/^[a-z]$/, {message: "Letter must be a single letter"});
+  .refine((val) => /^[a-zA-Z]$/.test(val), {
+    message: "Input must be a single letter"
+  })
+  .transform((val) => val.toLowerCase());
 
 const LetterSchema = z.object({
   character: CharacterSchema,
@@ -20,9 +22,18 @@ const WordSchema = z
   });
 
 const FinalLetterStateSchema = z.enum(["correct", "misplaced", "absent"]);
-export const FinalLetterSchema = z.object({
+const FinalLetterSchema = z.object({
   character: CharacterSchema,
   state: FinalLetterStateSchema,
 });
+
+const FinalWordSchema = z
+  .array(FinalLetterSchema)
+  .refine((letters) => letters.length === 5, {
+    message: "Word must be 5 letters",
+  });
+
+export const GuessesSchema = z.array(WordSchema);
+export type TGuesses = z.infer<typeof GuessesSchema>;
 
 export type TWord = z.infer<typeof WordSchema>;

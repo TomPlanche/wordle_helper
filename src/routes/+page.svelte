@@ -1,8 +1,8 @@
 <script lang="ts">
   import "../main.scss";
   import WordGuess from "../lib/components/WordGuess.svelte";
-  import {FinalLetterSchema, type TWord} from "$lib/types";
   import {invoke} from "@tauri-apps/api/core";
+  import {GuessesSchema, type TWord} from "$lib/types";
 
   // States
   let guesses = $state<TWord[]>(
@@ -58,7 +58,7 @@
       return;
     }
 
-    const verif = FinalLetterSchema.safeParse(guesses);
+    const verif = GuessesSchema.safeParse(guesses);
 
     if (verif.error) {
       console.error('Invalid guesses:', verif.error);
@@ -69,6 +69,20 @@
       .then((possibleWords) => {
         possibleMatches = possibleWords as string[];
       });
+  }
+
+  const addWordAsGuess = (word: string) => {
+    if (guesses.length >= 4) {
+      alert('Maximum number of guesses reached (4).');
+      return;
+    }
+
+    const newGuess: TWord = word.split('').map(char => ({
+      character: char,
+      state: 'unknown'
+    }));
+
+    guesses = [...guesses, newGuess];
   }
 </script>
 
@@ -128,7 +142,14 @@
       <h2>Possible matches:</h2>
       <ul>
         {#each possibleMatches as word}
-          <li>{word}</li>
+          <li>
+            <button
+                class="add-proposed-guess-btn"
+                onclick={() => addWordAsGuess(word)}
+            >
+              {word}
+            </button>
+          </li>
         {/each}
       </ul>
     </div>
@@ -136,6 +157,15 @@
 </main>
 
 <style lang="scss">
+  :global(*) {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
   .guesses {
     display: flex;
     flex-direction: column;
@@ -152,7 +182,7 @@
   }
 
 
-  button {
+  button:not(.add-proposed-guess-btn) {
     font-family: "Monorama", monospace;
     font-size: 1rem;
     font-weight: 100;
@@ -207,26 +237,35 @@
   }
 
   .results {
-    margin: 2rem 0;
-    padding: 1rem;
-    background-color: #073642;
-    border-radius: 8px;
-    color: #839496;
-
-    h2 {
-      margin-bottom: 1rem;
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
+    margin-top: 2rem;
+    text-align: center;
 
     ul {
-      list-style-type: none;
+      list-style: none;
       padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1rem;
 
       li {
-        margin-bottom: 0.5rem;
-        font-size: 1.2rem;
-        color: #93a1a1;
+        background-color: #073642;
+        color: #eee8d5;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+
+        &:hover {
+          background-color: #268bd2;
+          transform: scale(1.05);
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
       }
     }
   }
