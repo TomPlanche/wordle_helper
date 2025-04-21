@@ -1,18 +1,14 @@
 <script lang="ts">
-
   // Props
   import type {TWord} from "$lib/types";
 
-  const {
-    key,
-    word = $bindable<TWord>()
-  } = $props<{
-    key: number,
-    word: TWord,
+  const {key, word = $bindable<TWord>()} = $props<{
+    key: number;
+    word: TWord;
   }>();
 
   // States
-  let letters = $state<TWord>(word);
+  const letters = $state<TWord>(word);
 
   // Handle input in letter boxes
   const handleInput = (index: number, event: Event) => {
@@ -28,21 +24,24 @@
         // Auto-advance to the next input if possible
         if (index < 4) {
           const nextInput = document.querySelector(
-            `.letter-input[data-index="${index + 1}"][data-key="${key}"]`
+            `.letter-input[data-index="${index + 1}"][data-key="${key}"]`,
           ) as HTMLInputElement;
           if (nextInput) nextInput.focus();
         }
       } else {
         // Not a valid letter, reset
-        input.value = '';
+        input.value = "";
       }
     }
-  }
+  };
 
   // Cycle through letter states on click
   const cycleLetterState = (index: number) => {
-    const stateOrder: Array<'unknown' | 'correct' | 'misplaced' | 'absent'> = [
-      'unknown', 'correct', 'misplaced', 'absent'
+    const stateOrder: Array<"unknown" | "correct" | "misplaced" | "absent"> = [
+      "unknown",
+      "correct",
+      "misplaced",
+      "absent",
     ];
 
     const currentState = word[index].state;
@@ -50,24 +49,28 @@
     const nextIndex = (currentIndex + 1) % stateOrder.length;
 
     word[index].state = stateOrder[nextIndex]; // Update the bound word
-  }
+  };
 
   // Handle keyboard navigation
   const handleKeyDown = (index: number, event: KeyboardEvent) => {
-    if (event.key === 'ArrowRight' && index < 4) {
+    if (event.key === "ArrowRight" && index < 4) {
       const nextInput = document.querySelector(
-        `.letter-input[data-index="${index + 1}"][data-key="${key}"]`
+        `.letter-input[data-index="${index + 1}"][data-key="${key}"]`,
       ) as HTMLInputElement;
       if (nextInput) nextInput.focus();
-    } else if (event.key === 'ArrowLeft' && index > 0) {
+    } else if (event.key === "ArrowLeft" && index > 0) {
       const prevInput = document.querySelector(
-        `.letter-input[data-index="${index - 1}"][data-key="${key}"]`
+        `.letter-input[data-index="${index - 1}"][data-key="${key}"]`,
       ) as HTMLInputElement;
       if (prevInput) prevInput.focus();
-    } else if (event.key === 'Backspace' && index > 0 && !letters[index].character) {
+    } else if (
+      event.key === "Backspace" &&
+      index > 0 &&
+      !letters[index].character
+    ) {
       // If the current box is empty and backspace was pressed, go to the previous box
       const prevInput = document.querySelector(
-        `.letter-input[data-index="${index - 1}"][data-key="${key}"]`
+        `.letter-input[data-index="${index - 1}"][data-key="${key}"]`,
       ) as HTMLInputElement;
       if (prevInput) {
         prevInput.focus();
@@ -75,7 +78,7 @@
         // letters[index - 1].character = '';
       }
     }
-  }
+  };
 </script>
 
 <div class="word-guess">

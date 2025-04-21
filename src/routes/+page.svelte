@@ -5,85 +5,90 @@
   import {GuessesSchema, type TWord} from "$lib/types";
 
   // States
-  let guesses = $state<TWord[]>(
-    [[
-      {character: '', state: 'unknown'},
-      {character: '', state: 'unknown'},
-      {character: '', state: 'unknown'},
-      {character: '', state: 'unknown'},
-      {character: '', state: 'unknown'}
-    ]]
-  );
+  let guesses = $state<TWord[]>([
+    [
+      {character: "", state: "unknown"},
+      {character: "", state: "unknown"},
+      {character: "", state: "unknown"},
+      {character: "", state: "unknown"},
+      {character: "", state: "unknown"},
+    ],
+  ]);
   let possibleMatches = $state<string[]>([]);
 
-  let allFilled: boolean = $derived(guesses.every(guess => guess.every(letter => letter.char !== '')))
-  let allAreNotUnknown: boolean = $derived(guesses.every(guess => guess.every(letter => letter.state !== 'unknown')))
+  const allFilled: boolean = $derived(
+    guesses.every((guess) => guess.every((letter) => letter.character !== "")),
+  );
+  const allAreNotUnknown: boolean = $derived(
+    guesses.every((guess) => guess.every((letter) => letter.state !== "unknown")),
+  );
 
   const addGuess = () => {
     if (!allFilled) {
-      alert('Please fill all letter boxes before adding a new guess.');
+      alert("Please fill all letter boxes before adding a new guess.");
       return;
     }
 
     if (!allAreNotUnknown) {
-      alert('Please set all letter states before adding a new guess.');
+      alert("Please set all letter states before adding a new guess.");
       return;
     }
 
     guesses = [
       ...guesses,
       [
-        {character: '', state: 'unknown'},
-        {character: '', state: 'unknown'},
-        {character: '', state: 'unknown'},
-        {character: '', state: 'unknown'},
-        {character: '', state: 'unknown'}
-      ]
+        {character: "", state: "unknown"},
+        {character: "", state: "unknown"},
+        {character: "", state: "unknown"},
+        {character: "", state: "unknown"},
+        {character: "", state: "unknown"},
+      ],
     ];
-  }
+  };
 
   // Delete a guess by index
   const deleteGuess = (index: number) => {
     guesses = guesses.filter((_, i) => i !== index);
-  }
+  };
 
   const handleSubmit = () => {
     if (!allFilled) {
-      alert('Please fill all letter boxes before submitting.');
+      alert("Please fill all letter boxes before submitting.");
       return;
     }
 
     if (!allAreNotUnknown) {
-      alert('Please set all letter states before submitting.');
+      alert("Please set all letter states before submitting.");
       return;
     }
 
     const verif = GuessesSchema.safeParse(guesses);
 
     if (verif.error) {
-      console.error('Invalid guesses:', verif.error);
-      alert('Invalid guesses. Please check your input.');
+      console.error("Invalid guesses:", verif.error);
+      alert("Invalid guesses. Please check your input.");
     }
 
-    invoke('filter_word_list_command', {patterns: verif.data})
-      .then((possibleWords) => {
+    invoke("filter_word_list_command", {patterns: verif.data}).then(
+      (possibleWords) => {
         possibleMatches = possibleWords as string[];
-      });
-  }
+      },
+    );
+  };
 
   const addWordAsGuess = (word: string) => {
     if (guesses.length >= 4) {
-      alert('Maximum number of guesses reached (4).');
+      alert("Maximum number of guesses reached (4).");
       return;
     }
 
-    const newGuess: TWord = word.split('').map(char => ({
+    const newGuess: TWord = word.split("").map((char) => ({
       character: char,
-      state: 'unknown'
+      state: "unknown",
     }));
 
     guesses = [...guesses, newGuess];
-  }
+  };
 </script>
 
 <main>
