@@ -1,8 +1,9 @@
 <script lang="ts">
-  import "../main.scss";
-  import WordGuess from "../lib/components/WordGuess.svelte";
   import {invoke} from "@tauri-apps/api/core";
   import {GuessesSchema, type TWord} from "$lib/types";
+  import WordGuess from "../lib/components/WordGuess.svelte";
+
+  import "../main.scss";
 
   // States
   let guesses = $state<TWord[]>([
@@ -77,8 +78,8 @@
   };
 
   const addWordAsGuess = (word: string) => {
-    if (guesses.length >= 4) {
-      alert("Maximum number of guesses reached (4).");
+    if (guesses.length >= 5) {
+      alert("Maximum number of guesses reached (5).");
       return;
     }
 
