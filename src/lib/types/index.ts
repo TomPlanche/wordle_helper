@@ -1,6 +1,9 @@
-import { z } from "zod";
+import {z} from "zod";
 
-const LetterStateSchema = z.enum(["unknown", "correct", "misplaced", "absent"]);
+export const LetterStates = ["absent", "misplaced", "correct"] as const;
+export type TLetterState = (typeof LetterStates)[number];
+
+const LetterStateSchema = z.enum(LetterStates);
 const CharacterSchema = z
 	.string()
 	.min(1, { message: "Letter must be at least 1 character" })

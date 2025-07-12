@@ -1,6 +1,6 @@
 <script lang="ts">
   // Props
-  import type {TWord} from "$lib/types";
+  import {LetterStates, type TLetterState, type TWord} from "$lib/types";
 
   const {key, word = $bindable<TWord>()} = $props<{
     key: number;
@@ -37,12 +37,7 @@
 
   // Cycle through letter states on click
   const cycleLetterState = (index: number) => {
-    const stateOrder: Array<"unknown" | "correct" | "misplaced" | "absent"> = [
-      "unknown",
-      "correct",
-      "misplaced",
-      "absent",
-    ];
+    const stateOrder: TLetterState[] = LetterStates.map(m => m); // remove the 'as const'
 
     const currentState = word[index].state;
     const currentIndex = stateOrder.indexOf(currentState);

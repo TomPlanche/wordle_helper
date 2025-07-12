@@ -14,5 +14,9 @@ node_modules
 
 .idea
 
-# pnpm
+# pnpm, yarn, and npm lock files
 pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+

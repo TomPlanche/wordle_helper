@@ -8,20 +8,17 @@
   // States
   let guesses = $state<TWord[]>([
     [
-      {character: "", state: "unknown"},
-      {character: "", state: "unknown"},
-      {character: "", state: "unknown"},
-      {character: "", state: "unknown"},
-      {character: "", state: "unknown"},
+      {character: "", state: "absent"},
+      {character: "", state: "absent"},
+      {character: "", state: "absent"},
+      {character: "", state: "absent"},
+      {character: "", state: "absent"},
     ],
   ]);
   let possibleMatches = $state<string[]>([]);
 
   const allFilled: boolean = $derived(
     guesses.every((guess) => guess.every((letter) => letter.character !== "")),
-  );
-  const allAreNotUnknown: boolean = $derived(
-    guesses.every((guess) => guess.every((letter) => letter.state !== "unknown")),
   );
 
   const addGuess = () => {
@@ -30,19 +27,14 @@
       return;
     }
 
-    if (!allAreNotUnknown) {
-      alert("Please set all letter states before adding a new guess.");
-      return;
-    }
-
     guesses = [
       ...guesses,
       [
-        {character: "", state: "unknown"},
-        {character: "", state: "unknown"},
-        {character: "", state: "unknown"},
-        {character: "", state: "unknown"},
-        {character: "", state: "unknown"},
+        {character: "", state: "absent"},
+        {character: "", state: "absent"},
+        {character: "", state: "absent"},
+        {character: "", state: "absent"},
+        {character: "", state: "absent"},
       ],
     ];
   };
@@ -55,11 +47,6 @@
   const handleSubmit = () => {
     if (!allFilled) {
       alert("Please fill all letter boxes before submitting.");
-      return;
-    }
-
-    if (!allAreNotUnknown) {
-      alert("Please set all letter states before submitting.");
       return;
     }
 
@@ -85,7 +72,7 @@
 
     const newGuess: TWord = word.split("").map((char) => ({
       character: char,
-      state: "unknown",
+      state: "absent",
     }));
 
     guesses = [...guesses, newGuess];
@@ -145,7 +132,7 @@
 
   {#if possibleMatches.length > 0}
     <div class="results">
-      <h2>Possible matches:</h2>
+      <h2>Possible matches ({possibleMatches.length}) :</h2>
       <ul>
         {#each possibleMatches as word}
           <li>
