@@ -21,7 +21,7 @@ This project demonstrates a modern desktop application architecture using Tauri,
 
 The `WordGuess.svelte` component is the core UI element that:
 - Handles user input for 5-letter words
-- Manages the cycling of letter states (unknown → correct → misplaced → absent)
+- Manages the cycling of letter states (absent → misplaced → correct)
 - Provides keyboard navigation between letter boxes
 - Updates the parent component with new letter states
 
@@ -51,9 +51,9 @@ pub struct Letter {
     pub state: LetterState,
 }
 
-// Letter state (unknown, correct, misplaced, absent)
+// Letter state (absent, misplaced, correct)
 pub enum LetterState {
-    Unknown, Correct, Misplaced, Absent
+    Absent, Misplaced, Correct
 }
 
 // A 5-letter word
@@ -124,7 +124,7 @@ fn convert_letter_state(state: &str) -> LetterState {
         "correct" => LetterState::Correct,
         "misplaced" => LetterState::Misplaced,
         "absent" => LetterState::Absent,
-        _ => LetterState::Unknown,
+        _ => LetterState::Absent, // Default to absent instead of unknown
     }
 }
 ```
@@ -175,7 +175,10 @@ fn test_pattern_matching_duplicate_letters() {
 // Frontend validation with Zod
 import {z} from "zod";
 
-const LetterStateSchema = z.enum(["unknown", "correct", "misplaced", "absent"]);
+export const LetterStates = ["absent", "misplaced", "correct"] as const;
+export type TLetterState = (typeof LetterStates)[number];
+
+const LetterStateSchema = z.enum(LetterStates);
 const CharacterSchema = z
   .string()
   .min(1, {message: "Letter must be at least 1 character"})
@@ -183,10 +186,9 @@ const CharacterSchema = z
   .transform((val) => val.toLowerCase())
   .regex(/^[a-z]$/, {message: "Letter must be a single letter"});
 
-const FinalLetterStateSchema = z.enum(["correct", "misplaced", "absent"]);
-export const FinalLetterSchema = z.object({
+export const LetterSchema = z.object({
   character: CharacterSchema,
-  state: FinalLetterStateSchema,
+  state: LetterStateSchema,
 });
 ```
 

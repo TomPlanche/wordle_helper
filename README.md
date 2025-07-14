@@ -58,12 +58,12 @@ A modern desktop application to help you solve Wordle puzzles. Enter your guesse
 1. **Enter Your Guesses**: Type your Wordle guesses in the input fields.
 
 2. **Set Letter States**: Click on a letter to cycle through states:
-   - Grey: Letter is not in the word
-   - Yellow: Letter is in the word but in the wrong position
-   - Green: Letter is in the correct position
+   - **Absent (Grey)**: Letter is not in the word
+   - **Misplaced (Yellow)**: Letter is in the word but in the wrong position  
+   - **Correct (Green)**: Letter is in the correct position
 
 3. **Add More Guesses**: Click "Add Guess" to input additional guesses (up to 4).
 
 4. **Get Suggestions**: Click "Search" to see possible matching words based on your guesses.
 
-5. **Review Results**: The app will show you all possible words that match your constraints.
+5. **Review Results**: The app will show you all possible words that match your constraints, along with the total count.
