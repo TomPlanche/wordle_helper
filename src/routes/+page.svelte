@@ -1,6 +1,6 @@
 <script lang="ts">
+  import {GuessesSchema, type TLetterState, type TWord} from "$lib/types";
   import {invoke} from "@tauri-apps/api/core";
-  import {GuessesSchema, type TWord} from "$lib/types";
   import WordGuess from "../lib/components/WordGuess.svelte";
 
   import "../main.scss";
@@ -18,7 +18,9 @@
   let possibleMatches = $state<string[]>([]);
 
   const allFilled: boolean = $derived(
-    guesses.every((guess) => guess.every((letter) => letter.character !== "")),
+    guesses.every((guess) =>
+      guess.every((letter) => letter.character !== ""),
+    ),
   );
 
   const addGuess = () => {
@@ -70,10 +72,23 @@
       return;
     }
 
-    const newGuess: TWord = word.split("").map((char) => ({
-      character: char,
-      state: "absent",
-    }));
+    const newGuess: TWord = word.split("").map((char, position) => {
+      const lowerChar = char.toLowerCase();
+
+      // Check if this exact letter at this exact position was marked correct before
+      const correctAtThisPosition = guesses.some(
+        (guess) =>
+          guess[position]?.character.toLowerCase() === lowerChar &&
+          guess[position]?.state === "correct",
+      );
+
+      if (correctAtThisPosition) {
+        return {character: char, state: "correct" as TLetterState};
+      }
+
+      // Default to absent for all other cases
+      return {character: char, state: "absent" as TLetterState};
+    });
 
     guesses = [...guesses, newGuess];
   };
@@ -115,19 +130,10 @@
     {/each}
 
     {#if guesses.length < 4}
-      <button
-          class="add-guess-btn"
-          onclick={addGuess}
-      >Add Guess
-      </button>
+      <button class="add-guess-btn" onclick={addGuess}>Add Guess</button>
     {/if}
 
-    <button
-        class="search-btn"
-        onclick={handleSubmit}
-    >
-      Search
-    </button>
+    <button class="search-btn" onclick={handleSubmit}> Search</button>
   </div>
 
   {#if possibleMatches.length > 0}
@@ -174,7 +180,6 @@
     position: relative;
   }
 
-
   button:not(.add-proposed-guess-btn) {
     font-family: "Monorama", monospace;
     font-size: 1rem;
@@ -187,7 +192,7 @@
     border: none;
 
     &.delete-guess-btn {
-      padding: .5rem;
+      padding: 0.5rem;
       background-color: #dc322f;
       color: white;
       border-radius: 8px;
@@ -205,7 +210,8 @@
         width: 1.5rem;
         height: 1.5rem;
 
-        transition: background-color 0.2s, scale 0.2s;
+        transition: background-color 0.2s,
+        scale 0.2s;
       }
     }
 
