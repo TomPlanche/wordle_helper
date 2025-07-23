@@ -42,8 +42,48 @@
   };
 
   // Delete a guess by index
-  const deleteGuess = (index: number) => {
+  const deleteGuess = async (index: number) => {
+    // Get the word that's being deleted (if it has characters)
+    const deletedGuess = guesses[index];
+    const deletedWord = deletedGuess.map(letter => letter.character).join('').toLowerCase();
+    
+    // Remove the guess from the array
     guesses = guesses.filter((_, i) => i !== index);
+    
+    // If the deleted word was complete and not already in possibleMatches, 
+    // check if it should be re-added based on remaining guesses
+    if (deletedWord.length === 5 && deletedWord.match(/^[a-z]+$/) && !possibleMatches.includes(deletedWord)) {
+      // Get remaining filled guesses for validation
+      const remainingFilledGuesses = guesses.filter(guess => 
+        guess.every(letter => letter.character !== "")
+      );
+      
+      if (remainingFilledGuesses.length > 0) {
+        const verif = GuessesSchema.safeParse(remainingFilledGuesses);
+        if (verif.success) {
+          try {
+            const possibleWords = await invoke("filter_word_list_command", {patterns: verif.data}) as string[];
+            // If the deleted word is in the new results, add it back to possibleMatches
+            if (possibleWords.includes(deletedWord)) {
+              possibleMatches = [...possibleMatches, deletedWord].sort();
+            }
+          } catch (error) {
+            console.error("Error checking deleted word:", error);
+          }
+        }
+      } else {
+        // If no remaining filled guesses, we could add it back since there are no constraints
+        // But we should check if it's actually a valid word from our dictionary
+        try {
+          const allPossibleWords = await invoke("filter_word_list_command", {patterns: []}) as string[];
+          if (allPossibleWords.includes(deletedWord)) {
+            possibleMatches = [...possibleMatches, deletedWord].sort();
+          }
+        } catch (error) {
+          console.error("Error checking if deleted word is valid:", error);
+        }
+      }
+    }
   };
 
   const handleSubmit = () => {
@@ -61,7 +101,7 @@
 
     invoke("filter_word_list_command", {patterns: verif.data}).then(
       (possibleWords) => {
-        possibleMatches = possibleWords as string[];
+        possibleMatches = (possibleWords as string[]).sort();
       },
     );
   };
@@ -91,6 +131,9 @@
     });
 
     guesses = [...guesses, newGuess];
+    
+    // Remove the clicked word from possible matches
+    possibleMatches = possibleMatches.filter(match => match !== word).sort();
   };
 </script>
 
@@ -104,10 +147,10 @@
 
         <button
             class="delete-guess-btn"
-            class:invisible={index === 0 || guesses.length <= 1}
+            class:invisible={index !== guesses.length - 1 || guesses.length <= 1}
             onclick={() => deleteGuess(index)}
             aria-label="Delete guess"
-            disabled={index === 0 || guesses.length <= 1}
+            disabled={index !== guesses.length - 1 || guesses.length <= 1}
         >
           <svg
               width="24"
